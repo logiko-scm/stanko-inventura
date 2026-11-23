@@ -260,7 +260,7 @@ function showStart(){
   ['vImport','vHome','hExp','hRep','hHome'].forEach(id=>$(id).classList.add('hide')); $('vStart').classList.remove('hide');
   const n=S.plan.length, t=todayISO(), td=S.plan.filter(r=>r.d===t||(r.e&&r.d<=t&&t<=r.e)).length;
   $('tCycSt').textContent=n?(td?'Danas: '+td+' artikala':'Plan učitan'):'Plan nije učitan';
-  let a=''; try{const P=JSON.parse(localStorage.getItem('logiko-popis-v1')||'null'); if(P&&P.items&&P.items.length){a='Popisano '+P.items.filter(i=>P.counts&&P.counts[i.id]).length+' od '+P.items.length}}catch(e){}
+  let a=''; try{const P=JSON.parse(localStorage.getItem('logiko-popis-sum')||'null'); if(P&&P.n){a='Popisano '+P.d+' od '+P.n}}catch(e){}
   $('tAstSt').textContent=a||'Popis nije učitan';
 }
 $('tCyc').onclick=()=>{history.replaceState(null,'','#ciklicka');init()};

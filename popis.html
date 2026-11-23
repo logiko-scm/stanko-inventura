@@ -77,7 +77,8 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}td,th{padding:7px 4px
   <div id="vImport" class="hide">
     <div class="card">
       <b style="font-size:17px">Učitajte popis</b>
-      <p class="mut" style="margin:6px 0 12px">Excel iz prošle inventure ili iz registra osnovnih sredstava. Obavezno: inventarni broj i naziv. Lokacije (list „Lokacije") i količina iz evidencije su neobavezne.</p>
+      <p class="mut" style="margin:6px 0 8px">Excel s popisom predmeta iz prošle inventure ili iz registra osnovnih sredstava. Obavezno: inventarni broj i naziv; lokacije (list „Lokacije") i količina su neobavezne.</p>
+      <p class="mut" style="margin:0 0 12px"><b>Kako doći do datoteke:</b> pripremite je na računalu (najlakše iz predloška ispod), pošaljite je na mobitel mailom, preko OneDrivea ili WhatsAppa i spremite u Datoteke. Zatim je ovdje odaberite. Za probu nije potrebna nikakva datoteka: pritisnite „Isprobaj s demo popisom".</p>
       <input type="file" id="file" accept=".xlsx,.xls,.csv" class="hide">
       <button class="b pri big" id="pick">Odaberi datoteku s popisom</button>
       <button class="b big" id="demo" style="margin-top:8px">Isprobaj s demo popisom</button>
@@ -175,8 +176,17 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const LS='logiko-popis-v1';
 const blank=()=>({items:[],locs:[],cols:[],file:'',who:'',mode:'',cur:'',counts:{},extras:[],xlocs:[],closed:{},rev:{},expUsed:false});
 let S=blank(), showExp=false, flt='all', item=null, stSel='Ispravno';
-try{const t=localStorage.getItem(LS);if(t)S=Object.assign(blank(),JSON.parse(t))}catch(e){}
-function save(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){toast('Memorija preglednika je puna – odmah izvezite popis!')}}
+// Pohrana u IndexedDB (stotine MB) umjesto localStorage (oko 5 MB, dijeli se s cikličkom inventurom).
+const DB=(()=>{let p;const open=()=>p||(p=new Promise((res,rej)=>{const r=indexedDB.open('stanko',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}));
+  return {get:k=>open().then(db=>new Promise((res,rej)=>{const q=db.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})),
+          set:(k,v)=>open().then(db=>new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)}))}})();
+let busy=false,again=false,warned=false;
+function save(){
+  try{localStorage.setItem('logiko-popis-sum',JSON.stringify({n:S.items.length,d:S.items.filter(i=>S.counts[i.id]).length}))}catch(e){}
+  if(busy){again=true;return} busy=true;
+  DB.set(LS,JSON.parse(JSON.stringify(S))).then(()=>{busy=false;if(again){again=false;save()}})
+    .catch(e=>{busy=false;if(!warned){warned=true;toast('Spremanje u preglednik nije uspjelo ('+(e&&e.name||'greška')+'). Izvezite popis u Excel.')}});
+}
 function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2600)}
 const norm=s=>String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/[^a-z0-9]/g,'');
 const nCode=s=>String(s).trim().toLowerCase().replace(/^0+(?=.)/,'');
@@ -222,6 +232,7 @@ function load(wb,name){
     items.push({id,n:String(r[c.n]??'').trim(),loc:c.loc>=0?String(r[c.loc]??'').trim():'',kol,q:isNaN(qv)?(kol?null:1):qv,ser:c.ser>=0?String(r[c.ser]??'').trim():'',bar:c.bar>=0?String(r[c.bar]??'').trim():'',x:extra.map(i=>r[i])});
   }
   if(!items.length)throw new Error('Popis je prazan.');
+  if(items.length>20000)throw new Error('Popis ima '+items.length.toLocaleString('hr')+' predmeta. Aplikacija je namijenjena popisima do oko 20.000 predmeta; podijelite datoteku po lokacijama ili vrstama.');
   const ls=wb.SheetNames.find(n=>norm(n)==='lokacije');let locs=[];
   if(ls){locs=[...new Set(XLSX.utils.sheet_to_json(wb.Sheets[ls],{header:1,defval:''}).slice(1).map(r=>String(r[0]).trim()).filter(Boolean))]}
   S=Object.assign(blank(),{who:S.who,items,locs,cols:{head,extra:extra.map(i=>head[i]),hasQ:c.q>=0,hasLoc:c.loc>=0},file:name});
@@ -426,7 +437,14 @@ $('mNew').onclick=()=>{$('mMenu').classList.remove('on');if(S.items.length&&!con
 $('mWipe').onclick=()=>{if(confirm('Obrisati popis i SVE unose iz ovog uređaja? Prvo izvezite popis.')){S=Object.assign(blank(),{who:S.who});save();$('mMenu').classList.remove('on');route()}};
 
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{});
-route();
+(async()=>{
+  try{const v=await DB.get(LS);
+    if(v)S=Object.assign(blank(),v);
+    else{const t=localStorage.getItem(LS);if(t){S=Object.assign(blank(),JSON.parse(t));save()}}
+    localStorage.removeItem(LS);
+  }catch(e){try{const t=localStorage.getItem(LS);if(t)S=Object.assign(blank(),JSON.parse(t))}catch(_){}}
+  route();
+})();
 })();
 </script>
 </body>
