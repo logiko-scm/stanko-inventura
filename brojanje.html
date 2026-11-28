@@ -87,16 +87,18 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:6px 4px;b
         <b>Popis inventara i imovine</b><span class="s">Osnovna sredstva i sitni inventar.</span>
         <span class="st" id="tAstSt" style="color:var(--or)"></span>
       </a>
-      <div class="tile soon"><span class="badge">USKORO</span>
-        <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#667780" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
-        <b>Godišnja inventura</b><span class="s">Popis svih zaliha odjednom, po zonama.</span>
-      </div>
+      <a class="tile ast" href="godisnja.html" style="border-top-color:#1b7f4b">
+        <span class="badge" style="background:#1b7f4b">NOVO</span>
+        <div class="ic" style="background:#e8f5ee"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1b7f4b" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+        <b>Godišnja inventura</b><span class="s">Sve zalihe odjednom: zone, parovi, razlike i kontrola.</span>
+        <span class="st" style="color:#1b7f4b">Komisija i popisivači</span>
+      </a>
       <div class="tile soon"><span class="badge">USKORO</span>
         <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#667780" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></div>
         <b>Kontinuirana inventura</b><span class="s">Brojanje uz svaki ulaz i izlaz robe.</span>
       </div>
     </div>
-    <p class="mut" style="text-align:center;margin-top:16px">Stanko Inventura 1.2 · Logiko d.o.o.</p>
+    <p class="mut" style="text-align:center;margin-top:16px">Stanko Inventura 1.3 · Logiko d.o.o.</p>
   </div>
 
   <div id="vImport" class="card hide">
@@ -155,7 +157,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:6px 4px;b
 <div class="modal" id="mMenu"><div class="sheet">
   <h2>Izbornik</h2>
   <p class="mut" id="mInfo"></p>
-  <p class="mut">Stanko Inventura 1.2 · kontrolno brojanje · Logiko d.o.o., <a href="https://logiko.hr" target="_blank" rel="noopener" style="color:inherit">logiko.hr</a></p>
+  <p class="mut">Stanko Inventura 1.3 · kontrolno brojanje · Logiko d.o.o., <a href="https://logiko.hr" target="_blank" rel="noopener" style="color:inherit">logiko.hr</a></p>
   <button class="b big" id="newPlan" style="margin-bottom:8px">Učitaj novi plan</button>
   <button class="b big" id="wipe" style="margin-bottom:8px;color:var(--fail)">Obriši plan i sva brojanja</button>
   <button class="b big" id="mClose">Zatvori</button>
